@@ -126,7 +126,7 @@ function NavbarContent() {
             ) : (
               <Link 
                 href="/auth" 
-                className="btn-sign-in text-sm px-4 py-2 ml-3 rounded-md shadow-md hover:shadow-glow transition-all duration-300"
+                className="btn-sign-in text-sm px-4 py-2 ml-3 rounded-md shadow-md transition-all duration-300"
               >
                 <FiLogIn className="mr-2 h-4 w-4" />
                 Sign In

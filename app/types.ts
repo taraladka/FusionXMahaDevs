@@ -13,9 +13,9 @@ export interface Event {
   location?: string;
   description: string;
   image: string;
-  category?: 'upcoming' | 'current' | 'past';
   capacity?: number;
   registeredUsers?: number;
+  category?: 'upcoming' | 'current' | 'past';
   isDeleted?: boolean;
 }
 

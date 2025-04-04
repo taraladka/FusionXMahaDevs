@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiUsers, FiCalendar, FiMessageSquare, FiPlusCircle } from 'react-icons/fi';
-import Navbar from '@/app/components/Navbar';
+import Navbar from '../components/Navbar';
 import { useAuth } from '@/app/context/AuthContext';
 import { User, Event, Feedback } from '@/app/types';
 
