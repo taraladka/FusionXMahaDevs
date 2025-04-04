@@ -14,6 +14,8 @@ export interface Event {
   description: string;
   image: string;
   category?: 'upcoming' | 'current' | 'past';
+  capacity?: number;
+  registeredUsers?: number;
   isDeleted?: boolean;
 }
 
@@ -22,5 +24,6 @@ export type Feedback = {
   name: string;
   email: string;
   message: string;
-  createdAt: Date;
+  createdAt: string | Date;
+  userId?: string | null;
 }; 
