@@ -57,6 +57,19 @@ const EventSchema = Yup.object().shape({
     .url('Must be a valid URL')
 });
 
+// Define an interface for the form values
+interface EventFormValues {
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  category: string;
+  imageUrl: string;
+  additionalInfo: string;
+  registrationLink: string;
+}
+
 // Create Event Form Component
 function CreateEventContent() {
   const { user, isLoading } = useAuth();
@@ -67,8 +80,8 @@ function CreateEventContent() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   
-  const dateInputRef = useRef(null);
-  const timeInputRef = useRef(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const timeInputRef = useRef<HTMLInputElement>(null);
 
   // Function to toggle calendar and focus on date input
   const toggleCalendar = () => {
@@ -106,7 +119,7 @@ function CreateEventContent() {
   }, [user, isLoading, router]);
 
   // Handle form submission
-  const handleSubmit = async (values, { resetForm }) => {
+  const handleSubmit = async (values: EventFormValues, { resetForm }: { resetForm: () => void }) => {
     setIsSubmitting(true);
     setError('');
     setSuccess('');

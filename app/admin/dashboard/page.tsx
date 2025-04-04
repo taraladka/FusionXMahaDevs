@@ -17,6 +17,22 @@ import {
 import { useAuth, AuthProvider } from '../../context/AuthContext';
 import Navbar from '../../components/Navbar';
 
+// Type for sample events and state
+interface AdminEvent {
+  id: string;
+  title: string;
+  date: string;
+  status: string;
+  // Add any other properties needed
+  imageUrl?: string;
+  time?: string;
+  location?: string;
+  description?: string;
+  category?: string;
+  additionalInfo?: string;
+  registrationLink?: string;
+}
+
 type AdminTab = 'overview' | 'events' | 'users' | 'feedback' | 'settings';
 
 // Sample event data (fallback if no events in localStorage)
@@ -40,7 +56,7 @@ function AdminDashboardContent() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<AdminEvent[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -119,7 +135,7 @@ function AdminDashboardContent() {
   }
 
   // Format date for display
-  const formatEventDate = (dateStr) => {
+  const formatEventDate = (dateStr: string) => {
     // If the date is already in a display format (e.g., "Feb 11, 2025"), return as is
     if (dateStr.includes(',')) return dateStr;
     
