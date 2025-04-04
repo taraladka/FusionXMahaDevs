@@ -24,12 +24,6 @@ const SignupSchema = Yup.object().shape({
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Passwords must match')
     .required('Required'),
-  isAdmin: Yup.boolean(),
-  adminCode: Yup.string().when('isAdmin', {
-    is: true,
-    then: (schema) => schema.required('Admin code is required when registering as admin'),
-    otherwise: (schema) => schema,
-  }),
 });
 
 function AuthPageContent() {
@@ -41,10 +35,8 @@ function AuthPageContent() {
   const { login, signup, loginWithGoogle, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showAdminCode, setShowAdminCode] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   // Update isLogin based on action from URL params
   useEffect(() => {
@@ -56,23 +48,10 @@ function AuthPageContent() {
       setAuthError(null);
       if (isLogin) {
         await login(values.email, values.password);
-        router.push(redirectTo);
       } else {
-        await signup(
-          values.name, 
-          values.email, 
-          values.password, 
-          values.isAdmin, 
-          values.adminCode
-        );
-        
-        // Redirect admins to the admin dashboard, regular users to events
-        if (values.isAdmin) {
-          router.push('/admin');
-        } else {
-          router.push(redirectTo);
-        }
+        await signup(values.name, values.email, values.password);
       }
+      router.push(redirectTo);
     } catch (error: any) {
       // Firebase errors are already handled in the auth context
       setStatus({ error: error.message });
@@ -156,20 +135,13 @@ function AuthPageContent() {
             initialValues={
               isLogin
                 ? { email: '', password: '' }
-                : { 
-                    name: '', 
-                    email: '', 
-                    password: '', 
-                    confirmPassword: '',
-                    isAdmin: false,
-                    adminCode: ''
-                  }
+                : { name: '', email: '', password: '', confirmPassword: '' }
             }
             validationSchema={isLogin ? LoginSchema : SignupSchema}
             onSubmit={(values, helpers) => handleSubmit(values, helpers)}
             enableReinitialize
           >
-            {({ isSubmitting, status, values, setFieldValue }) => (
+            {({ isSubmitting, status }) => (
               <Form className="mt-8 space-y-6">
                 {status && status.error && !authError && (
                   <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded mb-4">
@@ -259,96 +231,40 @@ function AuthPageContent() {
                 </div>
                 
                 {!isLogin && (
-                  <>
-                    <div>
-                      <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1">
-                        Confirm Password
-                      </label>
-                      <div className="relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <FiLock className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <Field
-                          type={showConfirmPassword ? "text" : "password"}
-                          name="confirmPassword"
-                          className="glass-input pl-10 pr-10 w-full py-2.5 rounded-md"
-                          placeholder="••••••••"
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="text-gray-400 hover:text-white focus:outline-none"
-                          >
-                            {showConfirmPassword ? (
-                              <FiEyeOff className="h-5 w-5" />
-                            ) : (
-                              <FiEye className="h-5 w-5" />
-                            )}
-                          </button>
-                        </div>
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1">
+                      Confirm Password
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiLock className="h-5 w-5 text-gray-400" />
                       </div>
-                      <ErrorMessage
+                      <Field
+                        type={showConfirmPassword ? "text" : "password"}
                         name="confirmPassword"
-                        component="div"
-                        className="mt-1 text-sm text-red-500"
+                        className="glass-input pl-10 pr-10 w-full py-2.5 rounded-md"
+                        placeholder="••••••••"
                       />
-                    </div>
-                    
-                    {/* Admin Registration Option */}
-                    <div className="mt-4">
-                      <div className="flex items-center">
-                        <Field 
-                          type="checkbox" 
-                          name="isAdmin"
-                          id="isAdmin"
-                          className="h-4 w-4 rounded bg-darkgray border-gray-700 text-primary focus:ring-primary"
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            setFieldValue('isAdmin', e.target.checked);
-                            setIsAdmin(e.target.checked);
-                          }}
-                        />
-                        <label htmlFor="isAdmin" className="ml-2 block text-sm text-gray-300">
-                          Register as Admin (requires admin code)
-                        </label>
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="text-gray-400 hover:text-white focus:outline-none"
+                        >
+                          {showConfirmPassword ? (
+                            <FiEyeOff className="h-5 w-5" />
+                          ) : (
+                            <FiEye className="h-5 w-5" />
+                          )}
+                        </button>
                       </div>
                     </div>
-                    
-                    {/* Admin Code Field - Only shown if isAdmin is checked */}
-                    {values.isAdmin && (
-                      <div className="mt-4">
-                        <label htmlFor="adminCode" className="block text-sm font-medium text-gray-300 mb-1">
-                          Admin Code
-                        </label>
-                        <div className="relative rounded-md shadow-sm">
-                          <Field
-                            type={showAdminCode ? "text" : "password"}
-                            name="adminCode"
-                            className="glass-input w-full py-2.5 px-3 rounded-md"
-                            placeholder="Enter admin code"
-                          />
-                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <button
-                              type="button"
-                              onClick={() => setShowAdminCode(!showAdminCode)}
-                              className="text-gray-400 hover:text-white focus:outline-none"
-                            >
-                              {showAdminCode ? (
-                                <FiEyeOff className="h-5 w-5" />
-                              ) : (
-                                <FiEye className="h-5 w-5" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        <ErrorMessage
-                          name="adminCode"
-                          component="div"
-                          className="mt-1 text-sm text-red-500"
-                        />
-                      </div>
-                    )}
-                  </>
+                    <ErrorMessage
+                      name="confirmPassword"
+                      component="div"
+                      className="mt-1 text-sm text-red-500"
+                    />
+                  </div>
                 )}
                 
                 <div>

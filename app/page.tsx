@@ -8,7 +8,8 @@ import WelcomePopup from './components/WelcomePopup';
 import Skull3D from './components/Skull3D';
 import ParticleEffect from './components/ParticleEffect';
 import { useAuth } from './context/AuthContext';
-import { FiCalendar, FiUsers, FiCode, FiArrowRight, FiStar, FiMessageCircle } from 'react-icons/fi';
+import { FiCalendar, FiUsers, FiCode, FiArrowRight, FiStar, FiMessageCircle, FiGithub, FiFacebook, FiTwitter, FiLinkedin, FiMail } from 'react-icons/fi';
+import { FaInstagram, FaWhatsapp } from 'react-icons/fa';
 
 export default function Home() {
   const [showPopup, setShowPopup] = useState(true);
@@ -51,8 +52,8 @@ export default function Home() {
                       Join Our Community
                     </Link>
                   ) : (
-                    <a href="https://chat.whatsapp.com/GzwZXbqi50h8ympnaKNSni" target="_blank" rel="noopener noreferrer" className="btn-dark flex items-center justify-center sm:justify-start">
-                      <FiMessageCircle className="mr-2" />
+                    <a href="https://chat.whatsapp.com/EDQKvCG2ZqMJcdea22iJsG" target="_blank" rel="noopener noreferrer" className="btn-dark flex items-center justify-center sm:justify-start">
+                      <FaWhatsapp className="mr-2" />
                       Join the Community
                     </a>
                   )}
@@ -228,73 +229,61 @@ export default function Home() {
               </p>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-              <div>
-                <h3 className="text-white font-semibold mb-4">Navigation</h3>
-                <ul className="space-y-2">
-                  <li>
-                    <Link href="/" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      Home
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/events" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      Events
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/contact" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      Contact
-                    </Link>
-                  </li>
-                </ul>
+            {/* Social Media Links */}
+            <div className="mt-6 md:mt-0">
+              <h3 className="text-white font-semibold mb-3">Connect With Us</h3>
+              <div className="flex space-x-4">
+                <a 
+                  href="https://www.linkedin.com/company/fusion-club-cec-cgc/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-primary transition-colors duration-300"
+                  aria-label="LinkedIn"
+                >
+                  <FiLinkedin className="h-6 w-6" />
+                </a>
+                <a 
+                  href="https://www.instagram.com/fusionclub_cec?igsh=bjI4Z29pZXBzd2lk" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-primary transition-colors duration-300"
+                  aria-label="Instagram"
+                >
+                  <FaInstagram className="h-6 w-6" />
+                </a>
+                <a 
+                  href="https://github.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-primary transition-colors duration-300"
+                  aria-label="GitHub"
+                >
+                  <FiGithub className="h-6 w-6" />
+                </a>
+                <a 
+                  href="https://www.facebook.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-primary transition-colors duration-300"
+                  aria-label="Facebook"
+                >
+                  <FiFacebook className="h-6 w-6" />
+                </a>
+                <a 
+                  href="https://x.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-primary transition-colors duration-300"
+                  aria-label="X (Twitter)"
+                >
+                  <FiTwitter className="h-6 w-6" />
+                </a>
               </div>
-              
-              <div>
-                <h3 className="text-white font-semibold mb-4">Join Us</h3>
-                <ul className="space-y-2">
-                  {user ? (
-                    <>
-                      <li>
-                        <Link href="/events" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                          Upcoming Events
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/contact" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                          Contact Us
-                        </Link>
-                      </li>
-                    </>
-                  ) : (
-                    <>
-                      <li>
-                        <Link href="/auth" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                          Sign Up
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/auth" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                          Login
-                        </Link>
-                      </li>
-                    </>
-                  )}
-                </ul>
-              </div>
-              
-              <div className="col-span-2 md:col-span-1">
-                <h3 className="text-white font-semibold mb-4">Contact Info</h3>
-                <ul className="space-y-2">
-                  <li className="text-gray-400">
-                    Building 5, Room 303
-                  </li>
-                  <li>
-                    <a href="mailto:borrowverse@gmail.com" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      borrowverse@gmail.com
-                    </a>
-                  </li>
-                </ul>
+              <div className="mt-4">
+                <a href="mailto:fusionclubcgc@gmail.com" className="text-gray-400 hover:text-primary transition-colors duration-300 flex items-center">
+                  <FiMail className="mr-2 h-5 w-5" />
+                  fusionclubcgc@gmail.com
+                </a>
               </div>
             </div>
           </div>

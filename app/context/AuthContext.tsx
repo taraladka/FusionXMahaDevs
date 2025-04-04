@@ -12,13 +12,10 @@ import {
 import { auth } from '../firebase/config';
 import { User } from '../types';
 
-// Admin code for registration
-const ADMIN_CODE = "fusion2023";
-
 type AuthContextType = {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, isAdmin?: boolean, adminCode?: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   isAuthenticated: boolean;
@@ -36,15 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setIsLoading(true);
       if (firebaseUser) {
-        // Check local storage for admin status
-        const isAdmin = localStorage.getItem(`admin_${firebaseUser.uid}`) === 'true';
-        
         // User is signed in
         const userData: User = {
           id: firebaseUser.uid,
           name: firebaseUser.displayName || 'User',
           email: firebaseUser.email || '',
-          isAdmin: isAdmin
         };
         setUser(userData);
       } else {
@@ -123,16 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, isAdmin: boolean = false, adminCode: string = ''): Promise<void> => {
+  const signup = async (name: string, email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
-      // Verify admin code if attempting to register as admin
-      if (isAdmin) {
-        if (adminCode !== ADMIN_CODE) {
-          throw new Error('Invalid admin code');
-        }
-      }
-      
       // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
@@ -141,11 +127,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await updateProfile(userCredential.user, {
           displayName: name
         });
-        
-        // Store admin status in local storage if admin registration
-        if (isAdmin) {
-          localStorage.setItem(`admin_${userCredential.user.uid}`, 'true');
-        }
         
         // Force refresh the user to get the updated displayName
         // The onAuthStateChanged listener should pick up the change

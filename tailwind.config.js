@@ -63,7 +63,6 @@ module.exports = {
         'custom-lg': '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
         'inner-glow': 'inset 0 0 15px 0 rgba(255, 109, 0, 0.3)',
         'card-hover': '0 10px 30px -5px rgba(255, 109, 0, 0.15)',
-        'glow': '0 0 15px rgba(255, 109, 0, 0.6)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

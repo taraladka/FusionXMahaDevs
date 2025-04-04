@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiCalendar, FiMessageSquare, FiLogIn, FiMenu, FiX, FiUser, FiSettings } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiMessageSquare, FiLogIn, FiMenu, FiX, FiUser } from 'react-icons/fi';
 import { useAuth, AuthProvider } from '../context/AuthContext';
 
 function NavbarContent() {
@@ -46,8 +46,8 @@ function NavbarContent() {
               <Image
                 src="/pictures/fusion logo.png"
                 alt="Fusion Logo"
-                width={90}
-                height={90}
+                width={120}
+                height={120}
                 priority
                 className="h-auto transition-transform duration-300 hover:scale-105 hover:drop-shadow-[0_0_8px_rgba(255,109,0,0.5)]"
               />
@@ -58,10 +58,10 @@ function NavbarContent() {
           <div className="hidden md:flex items-center space-x-4">
             <Link 
               href="/" 
-              className={`nav-item group ${pathname === '/' ? 'active' : ''}`}
+              className={`nav-item group ${pathname === '/' ? 'active font-semibold text-primary' : ''}`}
             >
               <div className="flex items-center">
-                <FiHome className="mr-2 h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                <FiHome className={`mr-2 h-5 w-5 ${pathname === '/' ? 'text-primary' : ''} group-hover:text-primary transition-colors duration-300`} />
                 <span>Home</span>
               </div>
               <span className={`nav-indicator ${pathname === '/' ? 'w-full scale-100' : 'w-0 scale-0'} origin-left transition-all duration-300`}></span>
@@ -69,10 +69,10 @@ function NavbarContent() {
             
             <Link 
               href="/events" 
-              className={`nav-item group ${pathname === '/events' ? 'active' : ''}`}
+              className={`nav-item group ${pathname === '/events' ? 'active font-semibold text-primary' : ''}`}
             >
               <div className="flex items-center">
-                <FiCalendar className="mr-2 h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                <FiCalendar className={`mr-2 h-5 w-5 ${pathname === '/events' ? 'text-primary' : ''} group-hover:text-primary transition-colors duration-300`} />
                 <span>Events</span>
               </div>
               <span className={`nav-indicator ${pathname === '/events' ? 'w-full scale-100' : 'w-0 scale-0'} origin-left transition-all duration-300`}></span>
@@ -80,27 +80,14 @@ function NavbarContent() {
             
             <Link 
               href="/contact" 
-              className={`nav-item group ${pathname === '/contact' ? 'active' : ''}`}
+              className={`nav-item group ${pathname === '/contact' ? 'active font-semibold text-primary' : ''}`}
             >
               <div className="flex items-center">
-                <FiMessageSquare className="mr-2 h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                <FiMessageSquare className={`mr-2 h-5 w-5 ${pathname === '/contact' ? 'text-primary' : ''} group-hover:text-primary transition-colors duration-300`} />
                 <span>Contact</span>
               </div>
               <span className={`nav-indicator ${pathname === '/contact' ? 'w-full scale-100' : 'w-0 scale-0'} origin-left transition-all duration-300`}></span>
             </Link>
-            
-            {user?.isAdmin && (
-              <Link 
-                href="/admin" 
-                className={`nav-item group ${pathname === '/admin' ? 'active' : ''}`}
-              >
-                <div className="flex items-center">
-                  <FiSettings className="mr-2 h-5 w-5 group-hover:text-primary transition-colors duration-300" />
-                  <span>Admin</span>
-                </div>
-                <span className={`nav-indicator ${pathname === '/admin' ? 'w-full scale-100' : 'w-0 scale-0'} origin-left transition-all duration-300`}></span>
-              </Link>
-            )}
             
             {user ? (
               <div className="ml-3 flex items-center space-x-3 pl-3 border-l border-gray-700">
@@ -126,7 +113,7 @@ function NavbarContent() {
             ) : (
               <Link 
                 href="/auth" 
-                className="btn-sign-in text-sm px-4 py-2 ml-3 rounded-md shadow-md transition-all duration-300"
+                className="btn-sign-in text-sm px-4 py-2 ml-3 rounded-md shadow-md hover:shadow-glow transition-all duration-300"
               >
                 <FiLogIn className="mr-2 h-4 w-4" />
                 Sign In
@@ -158,49 +145,36 @@ function NavbarContent() {
           <div className="px-4 pt-4 pb-6 space-y-3">
             <Link 
               href="/" 
-              className={`mobile-nav-item ${pathname === '/' ? 'text-primary border-l-4 border-primary pl-3' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
+              className={`mobile-nav-item ${pathname === '/' ? 'text-primary bg-primary/5 border-l-4 border-primary pl-3 font-semibold' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center">
-                <FiHome className="mr-3 h-5 w-5" />
+                <FiHome className={`mr-3 h-5 w-5 ${pathname === '/' ? 'text-primary' : ''}`} />
                 <span>Home</span>
               </div>
             </Link>
             
             <Link 
               href="/events" 
-              className={`mobile-nav-item ${pathname === '/events' ? 'text-primary border-l-4 border-primary pl-3' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
+              className={`mobile-nav-item ${pathname === '/events' ? 'text-primary bg-primary/5 border-l-4 border-primary pl-3 font-semibold' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center">
-                <FiCalendar className="mr-3 h-5 w-5" />
+                <FiCalendar className={`mr-3 h-5 w-5 ${pathname === '/events' ? 'text-primary' : ''}`} />
                 <span>Events</span>
               </div>
             </Link>
             
             <Link 
               href="/contact" 
-              className={`mobile-nav-item ${pathname === '/contact' ? 'text-primary border-l-4 border-primary pl-3' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
+              className={`mobile-nav-item ${pathname === '/contact' ? 'text-primary bg-primary/5 border-l-4 border-primary pl-3 font-semibold' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center">
-                <FiMessageSquare className="mr-3 h-5 w-5" />
+                <FiMessageSquare className={`mr-3 h-5 w-5 ${pathname === '/contact' ? 'text-primary' : ''}`} />
                 <span>Contact</span>
               </div>
             </Link>
-            
-            {user?.isAdmin && (
-              <Link 
-                href="/admin" 
-                className={`mobile-nav-item ${pathname === '/admin' ? 'text-primary border-l-4 border-primary pl-3' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
-                onClick={() => setIsOpen(false)}
-              >
-                <div className="flex items-center">
-                  <FiSettings className="mr-3 h-5 w-5" />
-                  <span>Admin Dashboard</span>
-                </div>
-              </Link>
-            )}
             
             {user && (
               <Link 

@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { FiMail, FiMapPin, FiClock, FiSend, FiUser, FiMessageSquare, FiCheck } from 'react-icons/fi';
-import { AuthProvider } from '../context/AuthContext';
-import { useAuth } from '../context/AuthContext';
+import { FaWhatsapp } from 'react-icons/fa';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -22,8 +22,10 @@ const Contact = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = async (values: any, { resetForm }: any) => {
-    // In a real app, this would call an API to send the feedback
-    console.log('Feedback submitted:', values);
+    // In a real app, this would call an API to send the feedback to fusionclubcgc@gmail.com
+    console.log('Feedback submitted to fusionclubcgc@gmail.com:', values);
+    
+    // TODO: Implement actual email sending functionality to fusionclubcgc@gmail.com
     
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -54,10 +56,24 @@ const Contact = () => {
           ></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="max-w-3xl">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">Contact Us</h1>
-              <p className="text-xl text-gray-300 mb-6">
-                Get in touch with the Fusion Technical Club team
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-gradient animate-fadeIn">Get in Touch</h1>
+              <p className="text-xl text-gray-300 mb-6 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                Have questions or feedback? We'd love to hear from you!
               </p>
+              
+              {user && (
+                <div className="flex flex-wrap gap-4 mb-8 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                  <a 
+                    href="https://chat.whatsapp.com/EDQKvCG2ZqMJcdea22iJsG" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="btn-dark flex items-center justify-center"
+                  >
+                    <FaWhatsapp className="mr-2" />
+                    Join the Community
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -73,10 +89,10 @@ const Contact = () => {
                 <h3 className="text-xl font-semibold mb-3 text-white">Email</h3>
                 <p className="text-gray-300 mb-4">Have a question? Reach out to us.</p>
                 <a 
-                  href="mailto:borrowverse@gmail.com" 
+                  href="mailto:fusionclubcgc@gmail.com" 
                   className="text-primary font-medium hover:text-primary/80 transition-colors flex items-center group"
                 >
-                  borrowverse@gmail.com
+                  fusionclubcgc@gmail.com
                   <FiSend className="ml-2 transition-transform group-hover:translate-x-1" />
                 </a>
               </div>
@@ -300,31 +316,15 @@ const Contact = () => {
                 </ul>
               </div>
               
-              <div>
-                <h3 className="text-white font-semibold mb-4">Join Us</h3>
-                <ul className="space-y-2">
-                  <li>
-                    <Link href="/auth?action=signup" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      Sign Up
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/auth" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      Login
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              
-              <div className="col-span-2 md:col-span-1">
+              <div className="col-span-1 md:col-span-2">
                 <h3 className="text-white font-semibold mb-4">Contact Info</h3>
                 <ul className="space-y-2">
                   <li className="text-gray-400">
                     Building 5, Room 303
                   </li>
                   <li>
-                    <a href="mailto:borrowverse@gmail.com" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      borrowverse@gmail.com
+                    <a href="mailto:fusionclubcgc@gmail.com" className="text-gray-400 hover:text-primary transition-colors duration-300">
+                      fusionclubcgc@gmail.com
                     </a>
                   </li>
                 </ul>

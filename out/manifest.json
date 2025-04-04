@@ -1,0 +1,21 @@
+{
+  "name": "Fusion Club CEC CGC Landran",
+  "short_name": "Fusion CEC",
+  "description": "Official website of Fusion Technical Club - CEC CGC Landran",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#FF6D00",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+} 

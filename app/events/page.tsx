@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FiSearch, FiCalendar, FiFilter, FiChevronRight, FiArrowRight, FiLayout, FiList, FiInfo, FiClock, FiMapPin } from 'react-icons/fi';
+import { FiSearch, FiCalendar, FiFilter, FiChevronRight, FiArrowRight, FiLayout, FiList, FiInfo, FiClock, FiMapPin, FiChevronDown } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import { Event } from '../types';
@@ -72,6 +72,11 @@ const Events = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [registerUrl, setRegisterUrl] = useState<string | null>(null);
   const [openFormAfterInfoClose, setOpenFormAfterInfoClose] = useState<boolean>(false);
+  const [eventType, setEventType] = useState<string>('all');
+  const [isEventTypeOpen, setIsEventTypeOpen] = useState<boolean>(false);
+  
+  // Event category types
+  const eventTypes = ['all', 'tech', 'gaming', 'design', 'workshop', 'hackathon', 'seminar'];
 
   // Initialize events with calculated categories
   useEffect(() => {
@@ -79,7 +84,7 @@ const Events = () => {
     setEvents(eventsWithCategories);
   }, []);
 
-  // Filter events based on search term and category
+  // Filter events based on search term, time category, and event type
   useEffect(() => {
     const eventsWithCategories = calculateEventCategories(eventsData);
     let filteredEvents = eventsWithCategories;
@@ -95,8 +100,17 @@ const Events = () => {
       filteredEvents = filteredEvents.filter(event => event.category === filter);
     }
     
+    if (eventType !== 'all') {
+      // This is a simulation as we don't have event types in the data
+      // In a real app, you would filter based on actual event type property
+      filteredEvents = filteredEvents.filter(event => 
+        event.title.toLowerCase().includes(eventType.toLowerCase()) || 
+        event.description.toLowerCase().includes(eventType.toLowerCase())
+      );
+    }
+    
     setEvents(filteredEvents);
-  }, [searchTerm, filter]);
+  }, [searchTerm, filter, eventType]);
 
   // Function to format date
   const formatDate = (dateString: string) => {
@@ -254,6 +268,35 @@ const Events = () => {
                   </button>
                 </div>
                 
+                {/* Event type dropdown */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-between w-full px-4 py-2.5 text-sm text-white bg-darkgray rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-300"
+                    onClick={() => setIsEventTypeOpen(!isEventTypeOpen)}
+                  >
+                    <span className="capitalize">{eventType === 'all' ? 'All Categories' : eventType}</span>
+                    <FiChevronDown className={`ml-2 h-4 w-4 transition-transform ${isEventTypeOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {isEventTypeOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-darkergray z-10 ring-1 ring-black ring-opacity-5 divide-y divide-gray-700 focus:outline-none">
+                      {eventTypes.map((type) => (
+                        <button
+                          key={type}
+                          className={`${eventType === type ? 'bg-primary/10 text-primary' : 'text-gray-300 hover:bg-gray-800'} w-full text-left px-4 py-2.5 text-sm capitalize transition-colors duration-200`}
+                          onClick={() => {
+                            setEventType(type);
+                            setIsEventTypeOpen(false);
+                          }}
+                        >
+                          {type === 'all' ? 'All Categories' : type}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
                 <div className="hidden md:flex items-center border-l border-gray-700 pl-3 ml-2">
                   <button
                     onClick={() => setViewMode('grid')}
@@ -299,6 +342,21 @@ const Events = () => {
                 >
                   All
                 </button>
+                
+                {/* Mobile event types dropdown */}
+                <div className="w-full mt-2">
+                  <select
+                    value={eventType}
+                    onChange={(e) => setEventType(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-darkgray text-gray-300 rounded-md text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    {eventTypes.map((type) => (
+                      <option key={type} value={type} className="capitalize bg-darkergray">
+                        {type === 'all' ? 'All Categories' : type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
           </div>
@@ -562,31 +620,15 @@ const Events = () => {
                 </ul>
               </div>
               
-              <div>
-                <h3 className="text-white font-semibold mb-4">Join Us</h3>
-                <ul className="space-y-2">
-                  <li>
-                    <Link href="/auth?action=signup" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      Sign Up
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/auth" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      Login
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              
-              <div className="col-span-2 md:col-span-1">
+              <div className="col-span-1 md:col-span-2">
                 <h3 className="text-white font-semibold mb-4">Contact Info</h3>
                 <ul className="space-y-2">
                   <li className="text-gray-400">
                     Building 5, Room 303
                   </li>
                   <li>
-                    <a href="mailto:borrowverse@gmail.com" className="text-gray-400 hover:text-primary transition-colors duration-300">
-                      borrowverse@gmail.com
+                    <a href="mailto:fusionclubcgc@gmail.com" className="text-gray-400 hover:text-primary transition-colors duration-300">
+                      fusionclubcgc@gmail.com
                     </a>
                   </li>
                 </ul>

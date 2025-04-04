@@ -2,31 +2,7 @@
   command = "npm run build"
   publish = ".next"
 
-[build.environment]
-  NEXT_TELEMETRY_DISABLED = "1"
-
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
-  conditions = {Role = ["anonymous"]}
-
-# Force trailing slash
-[[redirects]]
-  from = "/*"
-  to = "/:splat/"
-  status = 301
-  force = false
-  conditions = {Ends_With = {pathname = []}, excludes_netlify_hosted_dependencies = "true"}
-
-# Custom 404 page
-[[redirects]]
-  from = "/*"
-  to = "/404.html"
-  status = 404
 
 # No need for custom redirects as the NextJS plugin handles this properly 
