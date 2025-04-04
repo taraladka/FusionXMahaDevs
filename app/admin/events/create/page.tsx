@@ -57,19 +57,6 @@ const EventSchema = Yup.object().shape({
     .url('Must be a valid URL')
 });
 
-// Define an interface for the form values
-interface EventFormValues {
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  category: string;
-  imageUrl: string;
-  additionalInfo: string;
-  registrationLink: string;
-}
-
 // Create Event Form Component
 function CreateEventContent() {
   const { user, isLoading } = useAuth();
@@ -80,20 +67,14 @@ function CreateEventContent() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   
-  const dateInputRef = useRef<HTMLInputElement>(null);
-  const timeInputRef = useRef<HTMLInputElement>(null);
+  const dateInputRef = useRef(null);
+  const timeInputRef = useRef(null);
 
   // Function to toggle calendar and focus on date input
   const toggleCalendar = () => {
     if (dateInputRef.current) {
       dateInputRef.current.focus();
-      // Use the modern showPicker() API if available, with fallback
-      if (typeof dateInputRef.current.showPicker === 'function') {
-        dateInputRef.current.showPicker();
-      } else {
-        // Fallback for browsers without showPicker support
-        dateInputRef.current.click();
-      }
+      dateInputRef.current.click();
     }
   };
 
@@ -101,13 +82,7 @@ function CreateEventContent() {
   const toggleTimePicker = () => {
     if (timeInputRef.current) {
       timeInputRef.current.focus();
-      // Use the modern showPicker() API if available, with fallback
-      if (typeof timeInputRef.current.showPicker === 'function') {
-        timeInputRef.current.showPicker();
-      } else {
-        // Fallback for browsers without showPicker support
-        timeInputRef.current.click();
-      }
+      timeInputRef.current.click();
     }
   };
 
@@ -119,7 +94,7 @@ function CreateEventContent() {
   }, [user, isLoading, router]);
 
   // Handle form submission
-  const handleSubmit = async (values: EventFormValues, { resetForm }: { resetForm: () => void }) => {
+  const handleSubmit = async (values, { resetForm }) => {
     setIsSubmitting(true);
     setError('');
     setSuccess('');

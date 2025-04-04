@@ -56,20 +56,8 @@ const EventSchema = Yup.object().shape({
     .url('Must be a valid URL')
 });
 
-// Define an interface for sample events
-interface SampleEventData {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  category: string;
-  imageUrl: string;
-}
-
 // Sample event data (in a real app this would come from your API)
-const sampleEvents: Record<string, SampleEventData> = {
+const sampleEvents = {
   "1": {
     id: "1",
     title: "Tech Talk",
@@ -92,55 +80,25 @@ const sampleEvents: Record<string, SampleEventData> = {
   }
 };
 
-// Define an interface for the form values
-interface EventFormValues {
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  category: string;
-  imageUrl: string;
-  additionalInfo: string;
-  registrationLink: string;
-}
-
-// Also define a type for the params
-interface EditEventParams {
-  id: string;
-}
-
-// Define an interface for the event object
-interface EventData extends EventFormValues {
-  id: string;
-  status: string;
-}
-
 // Edit Event Form Component
-function EditEventContent({ params }: { params: EditEventParams }) {
+function EditEventContent({ params }) {
   const { id } = params;
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [event, setEvent] = useState<EventData | null>(null);
+  const [event, setEvent] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   
-  const dateInputRef = useRef<HTMLInputElement>(null);
-  const timeInputRef = useRef<HTMLInputElement>(null);
+  const dateInputRef = useRef(null);
+  const timeInputRef = useRef(null);
 
   // Function to toggle calendar and focus on date input
   const toggleCalendar = () => {
     if (dateInputRef.current) {
       dateInputRef.current.focus();
-      // Use the modern showPicker() API if available, with fallback
-      if (typeof dateInputRef.current.showPicker === 'function') {
-        dateInputRef.current.showPicker();
-      } else {
-        // Fallback for browsers without showPicker support
-        dateInputRef.current.click();
-      }
+      dateInputRef.current.click();
     }
   };
 
@@ -148,23 +106,22 @@ function EditEventContent({ params }: { params: EditEventParams }) {
   const toggleTimePicker = () => {
     if (timeInputRef.current) {
       timeInputRef.current.focus();
-      // Use the modern showPicker() API if available, with fallback
-      if (typeof timeInputRef.current.showPicker === 'function') {
-        timeInputRef.current.showPicker();
-      } else {
-        // Fallback for browsers without showPicker support
-        timeInputRef.current.click();
-      }
+      timeInputRef.current.click();
     }
   };
 
   // Redirect non-admin users
   useEffect(() => {
-    if (!user && !isLoading) {
+    if (!isLoading && (!user || !user.isAdmin)) {
       router.push('/auth');
-      return;
     }
+  }, [user, isLoading, router]);
 
+  // Fetch event data
+  useEffect(() => {
+    if (!id) return;
+
+    // Fetch event from localStorage instead of using sample data
     const fetchEvent = async () => {
       try {
         // Simulate API call delay
@@ -173,80 +130,65 @@ function EditEventContent({ params }: { params: EditEventParams }) {
         // Get events from localStorage
         const eventsJSON = localStorage.getItem('fusionEvents');
         
-        if (!eventsJSON) {
+        if (eventsJSON) {
+          const events = JSON.parse(eventsJSON);
+          // Find the event with the matching ID
+          const foundEvent = events.find(event => event.id === id);
+          
+          if (foundEvent) {
+            // Ensure the event has the new fields even if they didn't exist before
+            const enhancedEvent = {
+              additionalInfo: '',
+              registrationLink: '',
+              ...foundEvent
+            };
+            setEvent(enhancedEvent);
+          } else {
+            // Fallback to sample events if not found in localStorage
+            if (sampleEvents[id]) {
+              const enhancedSampleEvent = {
+                additionalInfo: '',
+                registrationLink: '',
+                ...sampleEvents[id]
+              };
+              setEvent(enhancedSampleEvent);
+            } else {
+              setError('Event not found');
+            }
+          }
+        } else {
           // If no events in localStorage, check sample data
           if (sampleEvents[id]) {
-            const enhancedSampleEvent: EventData = {
-              ...sampleEvents[id],
+            const enhancedSampleEvent = {
               additionalInfo: '',
               registrationLink: '',
-              status: 'Upcoming'
-            };
-            setEvent(enhancedSampleEvent);
-          } else {
-            setError('Event not found');
-          }
-          setIsLoaded(true);
-          return;
-        }
-        
-        const events: EventData[] = JSON.parse(eventsJSON);
-        // Find the event with the matching ID
-        const foundEvent = events.find((event: EventData) => event.id === id);
-        
-        if (foundEvent) {
-          // Ensure the event has the new fields even if they didn't exist before
-          setEvent({
-            ...foundEvent,
-            additionalInfo: foundEvent.additionalInfo || '',
-            registrationLink: foundEvent.registrationLink || '',
-            status: foundEvent.status || "Upcoming"
-          });
-        } else {
-          // If not found in localStorage, check sample data
-          if (sampleEvents[id]) {
-            const enhancedSampleEvent: EventData = {
-              ...sampleEvents[id],
-              additionalInfo: '',
-              registrationLink: '',
-              status: 'Upcoming'
+              ...sampleEvents[id]
             };
             setEvent(enhancedSampleEvent);
           } else {
             setError('Event not found');
           }
         }
-        setIsLoaded(true);
-      } catch (error) {
-        console.error('Error fetching event:', error);
-        setError('Failed to load event');
+      } catch (err) {
+        console.error('Error fetching event:', err);
+        setError('Failed to load event data');
+      } finally {
         setIsLoaded(true);
       }
     };
 
-    if (user && !isLoading) {
-      fetchEvent();
-    }
-  }, [user, isLoading, id, router]);
+    fetchEvent();
+  }, [id]);
 
   // Handle form submission
-  const handleSubmit = async (values: EventFormValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+  const handleSubmit = async (values, { setSubmitting }) => {
+    setIsSubmitting(true);
+    setError('');
+    setSuccess('');
+
     try {
-      setIsSubmitting(true);
-      setError('');
-      setSuccess('');
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // If event is null, we can't proceed
-      if (!event) {
-        setError('Event not found');
-        return;
-      }
-      
-      // Create updated event object with the same ID and status
-      const updatedEvent: EventData = {
+      // Update the event with new values
+      const updatedEvent = {
         ...values,
         id: id, // Keep the same ID
         status: event.status || "Upcoming" // Keep the same status

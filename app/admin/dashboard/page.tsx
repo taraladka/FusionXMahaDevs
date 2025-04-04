@@ -17,23 +17,23 @@ import {
 import { useAuth, AuthProvider } from '../../context/AuthContext';
 import Navbar from '../../components/Navbar';
 
-// Type for sample events and state
+type AdminTab = 'overview' | 'events' | 'users' | 'feedback' | 'settings';
+
+// Define a type for the events
 interface AdminEvent {
   id: string;
   title: string;
   date: string;
   status: string;
-  // Add any other properties needed
+  // Add other properties that might exist
   imageUrl?: string;
-  time?: string;
-  location?: string;
   description?: string;
+  location?: string;
+  time?: string;
   category?: string;
   additionalInfo?: string;
   registrationLink?: string;
 }
-
-type AdminTab = 'overview' | 'events' | 'users' | 'feedback' | 'settings';
 
 // Sample event data (fallback if no events in localStorage)
 const sampleEvents = [

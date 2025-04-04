@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import AuthWrapper from './components/AuthWrapper'
 import Head from 'next/head'
+import CustomCursor from './components/CustomCursor'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,6 +34,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className={inter.className}>
+        <CustomCursor />
         <main className="min-h-screen">
           <AuthWrapper>
             {children}

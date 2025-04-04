@@ -1,7 +1,5 @@
 {
-  "/auth/page": "app/auth/page.js",
+  "/page": "app/page.js",
   "/admin/events/create/page": "app/admin/events/create/page.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/events/page": "app/events/page.js",
-  "/admin/events/edit/[id]/page": "app/admin/events/edit/[id]/page.js"
+  "/admin/dashboard/page": "app/admin/dashboard/page.js"
 }
