@@ -1,0 +1,41 @@
+# Fusion X Conference
+
+## Event Description
+Our flagship annual event with workshops, hackathons, and networking opportunities with industry professionals. Experience the cutting edge of technology and innovation.
+
+## Event Highlights
+- Hands-on workshops led by industry experts
+- 24-hour hackathon with exciting prizes
+- Tech showcase featuring student projects
+- Networking sessions with tech recruiters
+- Guest lectures from leading innovators
+
+## Workshop Tracks
+1. **Web Development** - React, Node.js, and modern web architecture
+2. **Mobile Applications** - Cross-platform development with Flutter
+3. **AI & Machine Learning** - Practical applications using TensorFlow
+4. **Blockchain Technology** - Smart contracts and decentralized applications
+5. **Cloud Computing** - AWS and Azure deployment strategies
+
+## Hackathon Details
+- Theme: "Tech for Social Good"
+- Team size: 2-4 members
+- Duration: 24 hours
+- Prizes worth ₹1,00,000+
+- Mentorship available throughout
+
+## Schedule
+- Day 1: Opening ceremony, keynotes, workshops
+- Day 2: Hackathon begins, technical sessions
+- Day 3: Project presentations, closing ceremony, awards
+
+## Registration Includes
+- Full access to all sessions and workshops
+- Hackathon participation
+- Meals and refreshments
+- Conference swag kit
+- Certificate of participation
+
+## Venue
+College Main Auditorium & Technology Block
+April 3-5, 2025 

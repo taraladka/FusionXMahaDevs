@@ -1,0 +1,32 @@
+# Tech Talk: Future of AI
+
+## Event Description
+Join us for an insightful tech talk featuring industry experts who will share their knowledge on emerging technologies and trends in artificial intelligence.
+
+## Key Speakers
+- Dr. Jane Smith - AI Research Lead at TechCorp
+- Prof. Michael Johnson - Computer Science Department
+- Sarah Williams - Machine Learning Engineer at DataInnovate
+
+## Topics Covered
+- The latest advancements in natural language processing
+- Ethical considerations in AI development
+- Practical applications of machine learning in industry
+- Future directions in AI research
+
+## Schedule
+- 10:00 AM - Registration and networking
+- 10:30 AM - Opening remarks
+- 10:45 AM - Speaker presentations
+- 12:30 PM - Panel discussion
+- 1:30 PM - Q&A session
+- 2:00 PM - Closing remarks and networking
+
+## Requirements
+- Basic understanding of computer science concepts
+- Interest in artificial intelligence and machine learning
+- Laptops are not required but may be useful for taking notes
+
+## Location
+Building 5, Conference Room 303
+College of Engineering Campus 
