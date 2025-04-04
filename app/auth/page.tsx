@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { FiUser, FiMail, FiLock, FiLogIn, FiUserPlus, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiLogIn, FiUserPlus, FiEye, FiEyeOff, FiShield } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth, AuthProvider } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
@@ -13,6 +13,11 @@ import Navbar from '../components/Navbar';
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Required'),
   password: Yup.string().required('Required'),
+  adminCode: Yup.string().when('isAdmin', {
+    is: true,
+    then: () => Yup.string().required('Admin code is required'),
+    otherwise: () => Yup.string()
+  })
 });
 
 const SignupSchema = Yup.object().shape({
@@ -24,6 +29,11 @@ const SignupSchema = Yup.object().shape({
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Passwords must match')
     .required('Required'),
+  adminCode: Yup.string().when('isAdmin', {
+    is: true,
+    then: () => Yup.string().required('Admin code is required'),
+    otherwise: () => Yup.string()
+  })
 });
 
 function AuthPageContent() {
@@ -32,10 +42,12 @@ function AuthPageContent() {
   const action = searchParams.get('action');
   const redirectTo = searchParams.get('redirect') || '/events';
   
-  const { login, signup, loginWithGoogle, isLoading } = useAuth();
+  const { login, signup, loginWithGoogle, loginAsAdmin, signupAsAdmin, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminCodeInput, setShowAdminCodeInput] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Update isLogin based on action from URL params
@@ -47,11 +59,22 @@ function AuthPageContent() {
     try {
       setAuthError(null);
       if (isLogin) {
-        await login(values.email, values.password);
+        if (isAdmin) {
+          await loginAsAdmin(values.email, values.password, values.adminCode);
+          router.push('/admin/dashboard');
+        } else {
+          await login(values.email, values.password);
+          router.push(redirectTo);
+        }
       } else {
-        await signup(values.name, values.email, values.password);
+        if (isAdmin) {
+          await signupAsAdmin(values.name, values.email, values.password, values.adminCode);
+          router.push('/admin/dashboard');
+        } else {
+          await signup(values.name, values.email, values.password);
+          router.push(redirectTo);
+        }
       }
-      router.push(redirectTo);
     } catch (error: any) {
       // Firebase errors are already handled in the auth context
       setStatus({ error: error.message });
@@ -102,27 +125,51 @@ function AuthPageContent() {
             </p>
           </div>
           
-          {/* Google Sign In Button */}
-          <div className="mt-6">
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="glass-button group relative w-full flex justify-center py-2.5 px-4 text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300"
-            >
-              <span className="flex items-center">
-                <FcGoogle className="h-5 w-5 mr-2" />
-                {isLogin ? 'Sign in with Google' : 'Sign up with Google'}
+          {/* Admin Toggle */}
+          <div className="flex items-center justify-center">
+            <label className="inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={isAdmin}
+                onChange={() => {
+                  setIsAdmin(!isAdmin);
+                  setShowAdminCodeInput(!isAdmin);
+                }}
+              />
+              <div className="relative w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+              <span className="ms-3 text-sm font-medium text-gray-300 flex items-center">
+                <FiShield className="mr-1 h-4 w-4 text-primary" />
+                Admin {isLogin ? 'Login' : 'Signup'}
               </span>
-            </button>
+            </label>
           </div>
           
+          {/* Google Sign In Button */}
+          {!isAdmin && (
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="glass-button group relative w-full flex justify-center py-2.5 px-4 text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300"
+              >
+                <span className="flex items-center">
+                  <FcGoogle className="h-5 w-5 mr-2" />
+                  {isLogin ? 'Sign in with Google' : 'Sign up with Google'}
+                </span>
+              </button>
+            </div>
+          )}
+          
           {/* Divider */}
-          <div className="mt-6 flex items-center justify-center">
-            <div className="w-full border-t border-white/10"></div>
-            <div className="px-3 text-sm text-gray-400 bg-transparent relative z-10">or</div>
-            <div className="w-full border-t border-white/10"></div>
-          </div>
+          {!isAdmin && (
+            <div className="mt-6 flex items-center justify-center">
+              <div className="w-full border-t border-white/10"></div>
+              <div className="px-3 text-sm text-gray-400 bg-transparent relative z-10">or</div>
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+          )}
 
           {/* Display Auth Error */}
           {authError && (
@@ -134,8 +181,8 @@ function AuthPageContent() {
           <Formik
             initialValues={
               isLogin
-                ? { email: '', password: '' }
-                : { name: '', email: '', password: '', confirmPassword: '' }
+                ? { email: '', password: '', isAdmin: isAdmin, adminCode: '' }
+                : { name: '', email: '', password: '', confirmPassword: '', isAdmin: isAdmin, adminCode: '' }
             }
             validationSchema={isLogin ? LoginSchema : SignupSchema}
             onSubmit={(values, helpers) => handleSubmit(values, helpers)}
@@ -266,21 +313,52 @@ function AuthPageContent() {
                     />
                   </div>
                 )}
+
+                {/* Admin code input */}
+                {isAdmin && (
+                  <div>
+                    <label htmlFor="adminCode" className="block text-sm font-medium text-gray-300 mb-1">
+                      Admin Code
+                    </label>
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiShield className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <Field
+                        type={showPassword ? "text" : "password"}
+                        name="adminCode"
+                        className="glass-input pl-10 w-full py-2.5 rounded-md"
+                        placeholder="Enter admin code"
+                      />
+                    </div>
+                    <ErrorMessage
+                      name="adminCode"
+                      component="div"
+                      className="mt-1 text-sm text-red-500"
+                    />
+                  </div>
+                )}
                 
                 <div>
+                  <Field name="isAdmin" type="hidden" />
                   <button
                     type="submit"
                     disabled={isSubmitting || isLoading}
                     className="glass-button-primary group relative w-full flex justify-center py-2.5 px-4 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300"
                   >
                     <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                      {isLogin ? (
+                      {isAdmin ? (
+                        <FiShield className="h-5 w-5 text-white" />
+                      ) : isLogin ? (
                         <FiLogIn className="h-5 w-5 text-white" />
                       ) : (
                         <FiUserPlus className="h-5 w-5 text-white" />
                       )}
                     </span>
-                    {isLogin ? 'Sign in' : 'Sign up'}
+                    {isAdmin ? 
+                      (isLogin ? 'Sign in as Admin' : 'Sign up as Admin') : 
+                      (isLogin ? 'Sign in' : 'Sign up')
+                    }
                   </button>
                 </div>
               </Form>

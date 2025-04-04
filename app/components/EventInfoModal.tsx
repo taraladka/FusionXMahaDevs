@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiX, FiLoader } from 'react-icons/fi';
+import { FiX, FiLoader, FiExternalLink } from 'react-icons/fi';
 
 interface EventInfoModalProps {
   isOpen: boolean;
@@ -11,6 +11,8 @@ interface EventInfoModalProps {
 
 const EventInfoModal = ({ isOpen, onClose, eventId, eventTitle, onRegisterUrlFound }: EventInfoModalProps) => {
   const [content, setContent] = useState<string>('');
+  const [additionalInfo, setAdditionalInfo] = useState<string>('');
+  const [registrationLink, setRegistrationLink] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +21,40 @@ const EventInfoModal = ({ isOpen, onClose, eventId, eventTitle, onRegisterUrlFou
       setIsLoading(true);
       setError(null);
       
-      // Hardcoded content for each event
+      // First check if the event exists in localStorage (for admin-created events)
+      if (typeof window !== 'undefined') {
+        const eventsJSON = localStorage.getItem('fusionEvents');
+        
+        if (eventsJSON) {
+          try {
+            const events = JSON.parse(eventsJSON);
+            const event = events.find(e => e.id === eventId);
+            
+            if (event) {
+              // Use the description for the main content
+              setContent(event.description);
+              
+              // Set additional info if available
+              setAdditionalInfo(event.additionalInfo || '');
+              
+              // Set registration link if available
+              if (event.registrationLink) {
+                setRegistrationLink(event.registrationLink);
+                if (onRegisterUrlFound) {
+                  onRegisterUrlFound(event.registrationLink);
+                }
+              }
+              
+              setIsLoading(false);
+              return; // Exit early if we found the event in localStorage
+            }
+          } catch (err) {
+            console.error('Error parsing events from localStorage:', err);
+          }
+        }
+      }
+      
+      // Hardcoded content for each event (as fallback)
       if (eventId === '1') {
         const eventContent = `Masters of Tech Unite! 🎤🔥👇
 
@@ -43,7 +78,9 @@ Event Details:
         if (registerUrlMatch) {
           const urlMatch = registerUrlMatch[0].match(/(https:\/\/forms\.gle\/[^\s]+)/);
           if (urlMatch && onRegisterUrlFound) {
-            onRegisterUrlFound(urlMatch[0]);
+            const regUrl = urlMatch[0];
+            setRegistrationLink(regUrl);
+            onRegisterUrlFound(regUrl);
           }
         }
         
@@ -109,7 +146,9 @@ https://forms.gle/7fNRxaUYaP1Vnt128
         if (registerUrlMatch) {
           const urlMatch = registerUrlMatch[0].match(/(https:\/\/forms\.gle\/[^\s]+)/);
           if (urlMatch && onRegisterUrlFound) {
-            onRegisterUrlFound(urlMatch[0]);
+            const regUrl = urlMatch[0];
+            setRegistrationLink(regUrl);
+            onRegisterUrlFound(regUrl);
           }
         }
         
@@ -160,6 +199,7 @@ https://forms.gle/7fNRxaUYaP1Vnt128
                 </div>
               ) : (
                 <div className="prose-invert max-w-none overflow-auto max-h-[70vh] pr-2 whitespace-pre-wrap text-gray-300">
+                  {/* Main event description */}
                   {content.split('\n').map((line, index) => {
                     // Check if line contains a URL
                     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -205,15 +245,39 @@ https://forms.gle/7fNRxaUYaP1Vnt128
                       return <p key={index} className="my-1">{line}</p>;
                     }
                   })}
+                  
+                  {/* Additional Info Section (if available) */}
+                  {additionalInfo && (
+                    <>
+                      <div className="mt-6 pt-6 border-t border-white/10">
+                        <h3 className="text-xl font-semibold text-primary mb-3">Additional Information</h3>
+                        <div className="text-gray-300">
+                          {additionalInfo.split('\n').map((line, index) => (
+                            <p key={`additional-${index}`} className="my-1">{line}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
           </div>
           
-          <div className="bg-black/30 backdrop-blur-md px-4 py-3 sm:px-6 flex flex-row-reverse border-t border-white/5">
+          <div className="bg-black/30 backdrop-blur-md px-4 py-3 sm:px-6 flex justify-between border-t border-white/5">
+            {registrationLink && (
+              <a
+                href={registrationLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass-button-primary rounded-md py-2 px-4 flex items-center"
+              >
+                Register Now <FiExternalLink className="ml-2" />
+              </a>
+            )}
             <button
               type="button"
-              className="glass-button-primary rounded-md py-2 px-4"
+              className={`${registrationLink ? 'glass-button-secondary' : 'glass-button-primary'} rounded-md py-2 px-4`}
               onClick={onClose}
             >
               Close

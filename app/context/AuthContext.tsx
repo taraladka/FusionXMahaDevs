@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { 
   createUserWithEmailAndPassword, 
@@ -20,7 +22,13 @@ type AuthContextType = {
   loginWithGoogle: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  verifyAdminCode: (code: string) => Promise<boolean>;
+  loginAsAdmin: (email: string, password: string, adminCode: string) => Promise<void>;
+  signupAsAdmin: (name: string, email: string, password: string, adminCode: string) => Promise<void>;
 };
+
+// Admin verification code
+const ADMIN_CODE = "fusion2023";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -34,10 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       if (firebaseUser) {
         // User is signed in
+        // Check if the user has an admin claim or custom property
         const userData: User = {
           id: firebaseUser.uid,
           name: firebaseUser.displayName || 'User',
           email: firebaseUser.email || '',
+          // We'll store isAdmin in localStorage as Firebase doesn't easily support custom claims without Cloud Functions
+          isAdmin: localStorage.getItem(`admin_${firebaseUser.uid}`) === 'true',
         };
         setUser(userData);
       } else {
@@ -50,6 +61,100 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
+
+  const verifyAdminCode = async (code: string): Promise<boolean> => {
+    return code === ADMIN_CODE;
+  };
+
+  const loginAsAdmin = async (email: string, password: string, adminCode: string): Promise<void> => {
+    setIsLoading(true);
+    try {
+      // First verify the admin code
+      const isValidCode = await verifyAdminCode(adminCode);
+      if (!isValidCode) {
+        throw new Error("Invalid admin code");
+      }
+
+      // Login with email and password
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Store admin status in localStorage
+      localStorage.setItem(`admin_${userCredential.user.uid}`, 'true');
+      
+      // Update the user object
+      if (userCredential.user) {
+        const userData: User = {
+          id: userCredential.user.uid,
+          name: userCredential.user.displayName || 'Admin',
+          email: userCredential.user.email || '',
+          isAdmin: true,
+        };
+        setUser(userData);
+      }
+    } catch (error: any) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error('Admin login error:', errorCode, errorMessage);
+      
+      let userFriendlyError = 'Invalid email, password, or admin code';
+      if (error.message === "Invalid admin code") {
+        userFriendlyError = 'Invalid admin code';
+      } else if (errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
+        userFriendlyError = 'Invalid email or password';
+      } else if (errorCode === 'auth/too-many-requests') {
+        userFriendlyError = 'Too many failed login attempts. Please try again later.';
+      } else if (errorCode === 'auth/user-disabled') {
+        userFriendlyError = 'This account has been disabled. Please contact support.';
+      }
+      
+      setIsLoading(false);
+      throw new Error(userFriendlyError);
+    }
+    setIsLoading(false);
+  };
+
+  const signupAsAdmin = async (name: string, email: string, password: string, adminCode: string): Promise<void> => {
+    setIsLoading(true);
+    try {
+      // First verify the admin code
+      const isValidCode = await verifyAdminCode(adminCode);
+      if (!isValidCode) {
+        throw new Error("Invalid admin code");
+      }
+
+      // Create user with email and password
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Update the user's profile with their name
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: name
+        });
+        
+        // Store admin status in localStorage
+        localStorage.setItem(`admin_${userCredential.user.uid}`, 'true');
+      }
+    } catch (error: any) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error('Admin signup error:', errorCode, errorMessage);
+      
+      let userFriendlyError = 'Failed to create admin account';
+      if (error.message === "Invalid admin code") {
+        userFriendlyError = 'Invalid admin code';
+      } else if (errorCode === 'auth/email-already-in-use') {
+        userFriendlyError = 'Email already in use';
+      } else if (errorCode === 'auth/invalid-email') {
+        userFriendlyError = 'Invalid email address';
+      } else if (errorCode === 'auth/weak-password') {
+        userFriendlyError = 'Password is too weak. Please use a stronger password.';
+      }
+      
+      setIsLoading(false);
+      throw new Error(userFriendlyError);
+    }
+    setIsLoading(false);
+  };
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
@@ -73,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       throw new Error(userFriendlyError);
     }
+    setIsLoading(false);
   };
 
   const loginWithGoogle = async (): Promise<void> => {
@@ -170,7 +276,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       loginWithGoogle,
       isAuthenticated: !!user,
-      isLoading
+      isLoading,
+      verifyAdminCode,
+      loginAsAdmin,
+      signupAsAdmin
     }}>
       {children}
     </AuthContext.Provider>

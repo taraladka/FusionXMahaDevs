@@ -9,6 +9,7 @@ import { Event } from '../types';
 import Link from 'next/link';
 import EventInfoModal from '../components/EventInfoModal';
 
+// Sample events data (fallback if no events in localStorage)
 const eventsData: Event[] = [
   {
     id: '1',
@@ -34,8 +35,8 @@ const eventsData: Event[] = [
 
 // Calculate event categories based on current date
 const calculateEventCategories = (events: Event[]) => {
-  // Use April 4, 2025 as the current date for this example
-  const currentDate = new Date('2025-04-04');
+  // Use current date for proper categorization
+  const currentDate = new Date();
   
   return events.map(event => {
     // Clone the event object
@@ -61,6 +62,39 @@ const calculateEventCategories = (events: Event[]) => {
   });
 };
 
+// Function to get default image for an event if not specified
+const getDefaultEventImage = (category: string) => {
+  switch(category) {
+    case 'Workshop':
+      return '/pictures/tech talk date- 11 february 2025 .jpg';
+    case 'Hackathon':
+      return '/pictures/fusion x event date- 3 april 2025 .png';
+    default:
+      return '/pictures/fusion x event date- 3 april 2025 .png';
+  }
+};
+
+// Function to convert admin events to public event format
+const convertAdminEventsToPublic = (adminEvents) => {
+  if (!adminEvents || !Array.isArray(adminEvents)) return [];
+  
+  return adminEvents.map(event => {
+    // Create a public event from admin event data
+    return {
+      id: event.id,
+      title: event.title,
+      date: event.date || new Date().toISOString().split('T')[0],
+      time: event.time || '12:00 PM',
+      location: event.location || 'To be announced',
+      description: event.description || 'No description available',
+      image: event.imageUrl || getDefaultEventImage(event.category),
+      category: event.status?.toLowerCase() || 'upcoming',
+      additionalInfo: event.additionalInfo || '',
+      registrationLink: event.registrationLink || ''
+    };
+  });
+};
+
 const Events = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
@@ -74,20 +108,53 @@ const Events = () => {
   const [openFormAfterInfoClose, setOpenFormAfterInfoClose] = useState<boolean>(false);
   const [eventType, setEventType] = useState<string>('all');
   const [isEventTypeOpen, setIsEventTypeOpen] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   
   // Event category types
   const eventTypes = ['all', 'tech', 'gaming', 'design', 'workshop', 'hackathon', 'seminar'];
 
-  // Initialize events with calculated categories
+  // Load events from localStorage when component mounts
   useEffect(() => {
-    const eventsWithCategories = calculateEventCategories(eventsData);
-    setEvents(eventsWithCategories);
+    const loadEvents = () => {
+      let allEvents = [...eventsData]; // Start with our static data
+      
+      try {
+        // Try to get admin events from localStorage
+        if (typeof window !== 'undefined') {
+          const adminEventsJSON = localStorage.getItem('fusionEvents');
+          
+          if (adminEventsJSON) {
+            // If admin events exist in localStorage, convert and add them
+            const adminEvents = JSON.parse(adminEventsJSON);
+            const convertedEvents = convertAdminEventsToPublic(adminEvents);
+            
+            // Combine with static events, avoiding duplicates by ID
+            const existingIds = new Set(allEvents.map(e => e.id));
+            convertedEvents.forEach(event => {
+              if (!existingIds.has(event.id)) {
+                allEvents.push(event);
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading events from localStorage:', error);
+      }
+      
+      // Calculate categories for all events
+      const eventsWithCategories = calculateEventCategories(allEvents);
+      setEvents(eventsWithCategories);
+      setIsLoaded(true);
+    };
+    
+    loadEvents();
   }, []);
 
   // Filter events based on search term, time category, and event type
   useEffect(() => {
-    const eventsWithCategories = calculateEventCategories(eventsData);
-    let filteredEvents = eventsWithCategories;
+    if (!isLoaded) return;
+    
+    let filteredEvents = [...events];
     
     if (searchTerm) {
       filteredEvents = filteredEvents.filter(event => 
@@ -110,7 +177,7 @@ const Events = () => {
     }
     
     setEvents(filteredEvents);
-  }, [searchTerm, filter, eventType]);
+  }, [searchTerm, filter, eventType, isLoaded]);
 
   // Function to format date
   const formatDate = (dateString: string) => {
@@ -153,16 +220,16 @@ const Events = () => {
       return;
     }
     
-    // Only proceed with registration if the event has a form
-    if (event.id === '1') {
-      // Tech Talk event doesn't have a registration form yet
-      alert('Registration for this event is not open yet. Please check back later!');
+    // Check if event has a registration link added by admin
+    if (event.registrationLink) {
+      window.open(event.registrationLink, '_blank');
       return;
     }
     
-    // First check if we already have the registration URL
-    if (registerUrl) {
-      window.open(registerUrl, '_blank');
+    // For the sample events, use the existing logic
+    if (event.id === '1') {
+      // Tech Talk event doesn't have a registration form yet
+      alert('Registration for this event is not open yet. Please check back later!');
       return;
     }
     

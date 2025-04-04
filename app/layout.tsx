@@ -8,6 +8,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const viewport: Viewport = {
   themeColor: '#FF6D00',
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export const metadata: Metadata = {
@@ -15,12 +17,9 @@ export const metadata: Metadata = {
   description: 'Official website of Fusion Technical Club - CEC CGC Landran',
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '32x32' },
-      { url: '/favicon.png', sizes: '192x192' },
+      { url: '/pictures/fusion logo.png' }
     ],
-    apple: '/favicon.png',
-  },
-  manifest: '/manifest.json',
+  }
 }
 
 export default function RootLayout({

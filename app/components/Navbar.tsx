@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiCalendar, FiMessageSquare, FiLogIn, FiMenu, FiX, FiUser } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiMessageSquare, FiLogIn, FiMenu, FiX, FiUser, FiShield } from 'react-icons/fi';
 import { useAuth, AuthProvider } from '../context/AuthContext';
 
 function NavbarContent() {
@@ -71,9 +71,12 @@ function NavbarContent() {
               href="/events" 
               className={`nav-item group ${pathname === '/events' ? 'active font-semibold text-primary' : ''}`}
             >
-              <div className="flex items-center">
+              <div className="flex items-center relative">
                 <FiCalendar className={`mr-2 h-5 w-5 ${pathname === '/events' ? 'text-primary' : ''} group-hover:text-primary transition-colors duration-300`} />
                 <span>Events</span>
+                {pathname === '/events' && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full"></span>
+                )}
               </div>
               <span className={`nav-indicator ${pathname === '/events' ? 'w-full scale-100' : 'w-0 scale-0'} origin-left transition-all duration-300`}></span>
             </Link>
@@ -103,6 +106,22 @@ function NavbarContent() {
                     <span className="absolute -bottom-1 inset-x-0 h-0.5 bg-primary rounded opacity-70"></span>
                   )}
                 </Link>
+                
+                {user.isAdmin && (
+                  <Link
+                    href="/admin/dashboard"
+                    className={`flex items-center group relative ml-3 ${pathname.startsWith('/admin') ? 'text-primary' : 'text-lightgray hover:text-white'} transition-colors duration-300`}
+                  >
+                    <div className="flex items-center justify-center bg-darkgray w-8 h-8 rounded-full mr-2 shadow-inner-glow overflow-hidden border border-primary/50">
+                      <FiShield className="h-4 w-4 text-primary group-hover:text-primary transition-colors duration-300" />
+                    </div>
+                    <span className="text-sm font-medium">Admin</span>
+                    {pathname.startsWith('/admin') && (
+                      <span className="absolute -bottom-1 inset-x-0 h-0.5 bg-primary rounded opacity-70"></span>
+                    )}
+                  </Link>
+                )}
+                
                 <button 
                   onClick={logout} 
                   className="btn-sign-out text-sm px-3 py-1.5 rounded-md hover:shadow-inner-glow"
@@ -177,16 +196,31 @@ function NavbarContent() {
             </Link>
             
             {user && (
-              <Link 
-                href="/profile" 
-                className={`mobile-nav-item ${pathname === '/profile' ? 'text-primary border-l-4 border-primary pl-3' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
-                onClick={() => setIsOpen(false)}
-              >
-                <div className="flex items-center">
-                  <FiUser className="mr-3 h-5 w-5" />
-                  <span>My Profile</span>
-                </div>
-              </Link>
+              <>
+                <Link 
+                  href="/profile" 
+                  className={`mobile-nav-item ${pathname === '/profile' ? 'text-primary bg-primary/5 border-l-4 border-primary pl-3 font-semibold' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <div className="flex items-center">
+                    <FiUser className="mr-3 h-5 w-5" />
+                    <span>My Profile</span>
+                  </div>
+                </Link>
+                
+                {user.isAdmin && (
+                  <Link 
+                    href="/admin/dashboard" 
+                    className={`mobile-nav-item ${pathname.startsWith('/admin') ? 'text-primary bg-primary/5 border-l-4 border-primary pl-3 font-semibold' : 'border-l-4 border-transparent pl-3'} transition-all duration-300`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <div className="flex items-center">
+                      <FiShield className="mr-3 h-5 w-5 text-primary" />
+                      <span>Admin Dashboard</span>
+                    </div>
+                  </Link>
+                )}
+              </>
             )}
           </div>
         </div>

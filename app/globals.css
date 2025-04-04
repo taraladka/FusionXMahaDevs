@@ -113,6 +113,11 @@ body {
     content: '';
     @apply absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full;
   }
+  
+  /* Special styling for Events page */
+  a[href="/events"].nav-item.active {
+    @apply text-primary font-bold;
+  }
 
   .nav-indicator {
     @apply absolute -bottom-1 h-0.5 bg-primary rounded transition-all duration-300;
