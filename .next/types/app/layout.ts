@@ -1,4 +1,4 @@
-// File: C:\EXTRA\Cursor AI\Fusion\app\layout.tsx
+// File: C:\EXTRA\Cursor AI\Fusion 2.0\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

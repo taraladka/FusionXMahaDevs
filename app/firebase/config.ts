@@ -1,42 +1,46 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
-// Only import analytics in client components
-import { getAnalytics } from "firebase/analytics";
+// Local storage based auth implementation
+import { EventEmitter } from 'events';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCt1EZAcN-F6905GLpXhVa7_G3eQ4A-Upo",
-  authDomain: "fusion-club-1456b.firebaseapp.com",
-  projectId: "fusion-club-1456b",
-  storageBucket: "fusion-club-1456b.firebasestorage.app",
-  messagingSenderId: "20769116100",
-  appId: "1:20769116100:web:1fcbbef4d9fd3fa6a05e91",
-  measurementId: "G-FKJ8EEV21Y"
-};
+// Create a simple user auth emitter to replace Firebase's auth state changes
+export const authEmitter = new EventEmitter();
 
-// Initialize Firebase
-let app;
-let analytics;
+// Fake auth object to simulate Firebase auth
+export const auth = {
+  currentUser: null,
+  onAuthStateChanged: (callback) => {
+    // Initial callback with current user
+    const storedUser = localStorage.getItem('auth_user');
+    if (storedUser) {
+      try {
+        auth.currentUser = JSON.parse(storedUser);
+        callback(auth.currentUser);
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        auth.currentUser = null;
+        callback(null);
+      }
+    } else {
+      callback(null);
+    }
 
-// Initialize Firebase safely for both server and client
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApps()[0];
-}
+    // Setup listener for future changes
+    const unsubscribe = (event) => {
+      authEmitter.removeListener('authStateChanged', listener);
+    };
 
-// Initialize Firebase Auth and get a reference to the service
-const auth = getAuth(app);
+    const listener = (user) => {
+      auth.currentUser = user;
+      callback(user);
+    };
 
-// Only initialize analytics in the browser environment in a function
-// that will be called on the client side
-const getFirebaseAnalytics = () => {
-  if (typeof window !== 'undefined') {
-    return getAnalytics(app);
+    authEmitter.on('authStateChanged', listener);
+    return unsubscribe;
   }
-  return null;
 };
 
-export { app, auth, getFirebaseAnalytics }; 
+// Export empty app to maintain compatibility
+export const app = {};
+
+// Mock Firebase analytics function
+export const getFirebaseAnalytics = () => null; 

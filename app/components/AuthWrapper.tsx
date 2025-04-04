@@ -1,27 +1,26 @@
 'use client';
 
 import { useEffect, useState, ReactNode } from 'react';
-import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { app } from '../firebase/config';
 import { AuthProvider } from '../context/AuthContext';
 
 export default function AuthWrapper({ children }: { children: ReactNode }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const auth = getAuth(app);
-      try {
-        // Set persistence to local (persists across browser sessions)
-        await setPersistence(auth, browserLocalPersistence);
-      } catch (error) {
-        console.error('Error setting auth persistence:', error);
-      } finally {
-        setIsReady(true);
+    // Initialize any necessary auth setup
+    try {
+      // Ensure localStorage exists
+      if (typeof window !== 'undefined') {
+        // Initialize users array if it doesn't exist
+        if (!localStorage.getItem('users')) {
+          localStorage.setItem('users', JSON.stringify([]));
+        }
       }
-    };
-
-    initAuth();
+    } catch (error) {
+      console.error('Error initializing auth:', error);
+    } finally {
+      setIsReady(true);
+    }
   }, []);
 
   if (!isReady) {

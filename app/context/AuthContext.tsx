@@ -1,17 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  updateProfile,
-  User as FirebaseUser,
-  GoogleAuthProvider,
-  signInWithPopup
-} from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { auth, authEmitter } from '../firebase/config';
 import { User } from '../types';
 
 type AuthContextType = {
@@ -38,17 +28,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Set up auth state listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
       setIsLoading(true);
-      if (firebaseUser) {
+      if (authUser) {
         // User is signed in
-        // Check if the user has an admin claim or custom property
         const userData: User = {
-          id: firebaseUser.uid,
-          name: firebaseUser.displayName || 'User',
-          email: firebaseUser.email || '',
-          // We'll store isAdmin in localStorage as Firebase doesn't easily support custom claims without Cloud Functions
-          isAdmin: localStorage.getItem(`admin_${firebaseUser.uid}`) === 'true',
+          id: authUser.uid || authUser.id,
+          name: authUser.displayName || 'User',
+          email: authUser.email || '',
+          isAdmin: localStorage.getItem(`admin_${authUser.uid || authUser.id}`) === 'true',
         };
         setUser(userData);
       } else {
@@ -75,24 +63,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Invalid admin code");
       }
 
-      // Login with email and password
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Get all users from localStorage
+      const usersJSON = localStorage.getItem('users');
+      const users = usersJSON ? JSON.parse(usersJSON) : [];
+      
+      // Find the user with matching email and password
+      const user = users.find(u => u.email === email);
+      
+      if (!user || user.password !== password) {
+        throw new Error("auth/user-not-found");
+      }
       
       // Store admin status in localStorage
-      localStorage.setItem(`admin_${userCredential.user.uid}`, 'true');
+      localStorage.setItem(`admin_${user.uid}`, 'true');
       
-      // Update the user object
-      if (userCredential.user) {
-        const userData: User = {
-          id: userCredential.user.uid,
-          name: userCredential.user.displayName || 'Admin',
-          email: userCredential.user.email || '',
-          isAdmin: true,
-        };
-        setUser(userData);
-      }
+      // Set as current user in localStorage
+      localStorage.setItem('auth_user', JSON.stringify({
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+      }));
+      
+      // Notify listeners of auth state change
+      authEmitter.emit('authStateChanged', {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+      });
+      
     } catch (error: any) {
-      const errorCode = error.code;
+      const errorCode = error.code || error.message;
       const errorMessage = error.message;
       console.error('Admin login error:', errorCode, errorMessage);
       
@@ -122,20 +122,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Invalid admin code");
       }
 
-      // Create user with email and password
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Get all users from localStorage
+      const usersJSON = localStorage.getItem('users');
+      const users = usersJSON ? JSON.parse(usersJSON) : [];
       
-      // Update the user's profile with their name
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: name
-        });
-        
-        // Store admin status in localStorage
-        localStorage.setItem(`admin_${userCredential.user.uid}`, 'true');
+      // Check if user with this email already exists
+      if (users.some(u => u.email === email)) {
+        throw new Error("auth/email-already-in-use");
       }
+      
+      // Create new user
+      const uid = `user_${Date.now()}`;
+      const newUser = {
+        uid,
+        displayName: name,
+        email,
+        password,
+      };
+      
+      // Add to users array
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      // Set admin status
+      localStorage.setItem(`admin_${uid}`, 'true');
+      
+      // Set as current user in localStorage
+      localStorage.setItem('auth_user', JSON.stringify({
+        uid,
+        displayName: name,
+        email,
+      }));
+      
+      // Notify listeners of auth state change
+      authEmitter.emit('authStateChanged', {
+        uid,
+        displayName: name,
+        email,
+      });
+      
     } catch (error: any) {
-      const errorCode = error.code;
+      const errorCode = error.code || error.message;
       const errorMessage = error.message;
       console.error('Admin signup error:', errorCode, errorMessage);
       
@@ -159,10 +186,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // No need to manually set user state as the onAuthStateChanged listener will handle it
+      // Get all users from localStorage
+      const usersJSON = localStorage.getItem('users');
+      const users = usersJSON ? JSON.parse(usersJSON) : [];
+      
+      // Find the user with matching email and password
+      const user = users.find(u => u.email === email);
+      
+      if (!user || user.password !== password) {
+        throw new Error("auth/user-not-found");
+      }
+      
+      // Set as current user in localStorage
+      localStorage.setItem('auth_user', JSON.stringify({
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+      }));
+      
+      // Notify listeners of auth state change
+      authEmitter.emit('authStateChanged', {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+      });
+      
     } catch (error: any) {
-      const errorCode = error.code;
+      const errorCode = error.code || error.message;
       const errorMessage = error.message;
       console.error('Login error:', errorCode, errorMessage);
       
@@ -184,39 +234,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = async (): Promise<void> => {
     setIsLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
-      // Add scopes for better profile access
-      provider.addScope('https://www.googleapis.com/auth/userinfo.email');
-      provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+      // Simulate Google login with a demo user
+      const uid = `google_user_${Date.now()}`;
+      const googleUser = {
+        uid,
+        displayName: 'Google User',
+        email: 'google.user@example.com',
+      };
       
-      // Set custom parameters for better UX
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
+      // Get all users from localStorage
+      const usersJSON = localStorage.getItem('users');
+      const users = usersJSON ? JSON.parse(usersJSON) : [];
       
-      const result = await signInWithPopup(auth, provider);
-      // The signed-in user info is in result.user
-      // No need to manually set user state as the onAuthStateChanged listener will handle it
-    } catch (error: any) {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.error('Google login error:', errorCode, errorMessage, error);
-      
-      let userFriendlyError = 'Failed to sign in with Google';
-      if (errorCode === 'auth/popup-closed-by-user') {
-        userFriendlyError = 'Sign-in popup was closed before completing the sign-in.';
-      } else if (errorCode === 'auth/popup-blocked') {
-        userFriendlyError = 'Sign-in popup was blocked by the browser. Please allow popups for this site.';
-      } else if (errorCode === 'auth/account-exists-with-different-credential') {
-        userFriendlyError = 'An account already exists with the same email address but different sign-in credentials.';
-      } else if (errorCode === 'auth/cancelled-popup-request') {
-        userFriendlyError = 'The popup has been closed by another popup request.';
-      } else if (errorCode === 'auth/unauthorized-domain') {
-        userFriendlyError = 'This domain is not authorized for OAuth operations. Add your domain in the Firebase console.';
+      // Check if this Google user exists (by email), if not add them
+      if (!users.some(u => u.email === googleUser.email)) {
+        users.push({
+          ...googleUser,
+          password: 'google-auth' // No real password needed for Google auth
+        });
+        localStorage.setItem('users', JSON.stringify(users));
       }
       
+      // Set as current user in localStorage
+      localStorage.setItem('auth_user', JSON.stringify(googleUser));
+      
+      // Notify listeners of auth state change
+      authEmitter.emit('authStateChanged', googleUser);
+      
+    } catch (error: any) {
+      console.error('Google login error:', error);
       setIsLoading(false);
-      throw new Error(userFriendlyError);
+      throw new Error('Failed to sign in with Google');
     } finally {
       setIsLoading(false);
     }
@@ -225,20 +273,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (name: string, email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
-      // Create user with email and password
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Get all users from localStorage
+      const usersJSON = localStorage.getItem('users');
+      const users = usersJSON ? JSON.parse(usersJSON) : [];
       
-      // Update the user's profile with their name
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: name
-        });
-        
-        // Force refresh the user to get the updated displayName
-        // The onAuthStateChanged listener should pick up the change
+      // Check if user with this email already exists
+      if (users.some(u => u.email === email)) {
+        throw new Error("auth/email-already-in-use");
       }
+      
+      // Create new user
+      const uid = `user_${Date.now()}`;
+      const newUser = {
+        uid,
+        displayName: name,
+        email,
+        password,
+      };
+      
+      // Add to users array
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      // Set as current user in localStorage
+      localStorage.setItem('auth_user', JSON.stringify({
+        uid,
+        displayName: name,
+        email,
+      }));
+      
+      // Notify listeners of auth state change
+      authEmitter.emit('authStateChanged', {
+        uid,
+        displayName: name,
+        email,
+      });
+      
     } catch (error: any) {
-      const errorCode = error.code;
+      const errorCode = error.code || error.message;
       const errorMessage = error.message;
       console.error('Signup error:', errorCode, errorMessage);
       
@@ -254,13 +326,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       throw new Error(userFriendlyError);
     }
+    setIsLoading(false);
   };
 
   const logout = async (): Promise<void> => {
     setIsLoading(true);
     try {
-      await signOut(auth);
-      // No need to manually set user state as the onAuthStateChanged listener will handle it
+      // Remove user from localStorage
+      localStorage.removeItem('auth_user');
+      
+      // Notify listeners of auth state change
+      authEmitter.emit('authStateChanged', null);
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
