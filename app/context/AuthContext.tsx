@@ -33,10 +33,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authUser) {
         // User is signed in
         const userData: User = {
-          id: authUser.uid || authUser.id,
+          id: authUser.id || authUser.uid || '',
           name: authUser.displayName || 'User',
           email: authUser.email || '',
-          isAdmin: localStorage.getItem(`admin_${authUser.uid || authUser.id}`) === 'true',
+          isAdmin: localStorage.getItem(`admin_${authUser.id || authUser.uid}`) === 'true',
         };
         setUser(userData);
       } else {
@@ -75,19 +75,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       // Store admin status in localStorage
-      localStorage.setItem(`admin_${user.uid}`, 'true');
+      localStorage.setItem(`admin_${user.id}`, 'true');
       
       // Set as current user in localStorage
       localStorage.setItem('auth_user', JSON.stringify({
-        uid: user.uid,
-        displayName: user.displayName,
+        id: user.id,
+        displayName: user.name,
         email: user.email,
       }));
       
       // Notify listeners of auth state change
       authEmitter.emit('authStateChanged', {
-        uid: user.uid,
-        displayName: user.displayName,
+        id: user.id,
+        displayName: user.name,
         email: user.email,
       });
       
@@ -132,10 +132,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       // Create new user
-      const uid = `user_${Date.now()}`;
+      const id = `user_${Date.now()}`;
       const newUser = {
-        uid,
-        displayName: name,
+        id,
+        name,
         email,
         password,
       };
@@ -145,18 +145,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('users', JSON.stringify(users));
       
       // Set admin status
-      localStorage.setItem(`admin_${uid}`, 'true');
+      localStorage.setItem(`admin_${id}`, 'true');
       
       // Set as current user in localStorage
       localStorage.setItem('auth_user', JSON.stringify({
-        uid,
+        id,
         displayName: name,
         email,
       }));
       
       // Notify listeners of auth state change
       authEmitter.emit('authStateChanged', {
-        uid,
+        id,
         displayName: name,
         email,
       });
@@ -199,15 +199,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Set as current user in localStorage
       localStorage.setItem('auth_user', JSON.stringify({
-        uid: user.uid,
-        displayName: user.displayName,
+        id: user.id,
+        displayName: user.name,
         email: user.email,
       }));
       
       // Notify listeners of auth state change
       authEmitter.emit('authStateChanged', {
-        uid: user.uid,
-        displayName: user.displayName,
+        id: user.id,
+        displayName: user.name,
         email: user.email,
       });
       
@@ -235,10 +235,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       // Simulate Google login with a demo user
-      const uid = `google_user_${Date.now()}`;
+      const id = `google_user_${Date.now()}`;
       const googleUser = {
-        uid,
-        displayName: 'Google User',
+        id,
+        name: 'Google User',
         email: 'google.user@example.com',
       };
       
@@ -256,10 +256,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       // Set as current user in localStorage
-      localStorage.setItem('auth_user', JSON.stringify(googleUser));
+      localStorage.setItem('auth_user', JSON.stringify({
+        id,
+        displayName: googleUser.name,
+        email: googleUser.email,
+      }));
       
       // Notify listeners of auth state change
-      authEmitter.emit('authStateChanged', googleUser);
+      authEmitter.emit('authStateChanged', {
+        id,
+        displayName: googleUser.name,
+        email: googleUser.email,
+      });
       
     } catch (error: any) {
       console.error('Google login error:', error);
@@ -283,10 +291,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       // Create new user
-      const uid = `user_${Date.now()}`;
+      const id = `user_${Date.now()}`;
       const newUser = {
-        uid,
-        displayName: name,
+        id,
+        name,
         email,
         password,
       };
@@ -297,14 +305,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Set as current user in localStorage
       localStorage.setItem('auth_user', JSON.stringify({
-        uid,
+        id,
         displayName: name,
         email,
       }));
       
       // Notify listeners of auth state change
       authEmitter.emit('authStateChanged', {
-        uid,
+        id,
         displayName: name,
         email,
       });
